@@ -1,0 +1,93 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_USB 32000
+
+typedef struct {
+    char ten[100];
+    float kichThuoc;
+    long thoiGian;
+} File;
+
+typedef struct Node {
+    File data;
+    struct Node *next;
+} Node;
+
+Node* createNode(File f) {
+    Node* n = (Node*)malloc(sizeof(Node));
+    n->data = f;
+    n->next = NULL;
+    return n;
+}
+
+// Chèn theo thời gian tăng dần
+void insertSorted(Node **head, File f) {
+    Node* n = createNode(f);
+
+    if (*head == NULL || f.thoiGian < (*head)->data.thoiGian) {
+        n->next = *head;
+        *head = n;
+        return;
+    }
+
+    Node* p = *head;
+    while (p->next != NULL && p->next->data.thoiGian < f.thoiGian)
+        p = p->next;
+
+    n->next = p->next;
+    p->next = n;
+}
+
+// Tính tổng dung lượng
+float tongSize(Node *head) {
+    float sum = 0;
+    while (head != NULL) {
+        sum += head->data.kichThuoc;
+        head = head->next;
+    }
+    return sum;
+}
+
+// Xóa file nhỏ nhất
+void removeSmallest(Node **head) {
+    if (*head == NULL) return;
+
+    Node *p = *head, *minNode = *head;
+    Node *prev = NULL, *prevMin = NULL;
+
+    while (p != NULL) {
+        if (p->data.kichThuoc < minNode->data.kichThuoc) {
+            minNode = p;
+            prevMin = prev;
+        }
+        prev = p;
+        p = p->next;
+    }
+
+    if (prevMin == NULL)
+        *head = minNode->next;
+    else
+        prevMin->next = minNode->next;
+
+    free(minNode);
+}
+
+// Backup USB
+void backupUSB(Node **head) {
+    while (tongSize(*head) > MAX_USB) {
+        removeSmallest(head);
+    }
+}
+
+// In danh sách
+void printList(Node *head) {
+    while (head != NULL) {
+        printf("%s | %.2f MB | %ld\n",
+               head->data.ten,
+               head->data.kichThuoc,
+               head->data.thoiGian);
+        head = head->next;
+    }
+}
